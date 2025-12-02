@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/agenda")
+@RequestMapping("/api/agenda")
 public class CalendarController {
 
     @Autowired
@@ -56,35 +56,44 @@ public class CalendarController {
 
     @GetMapping("/listar")
     public List<Map<String, String>> listarEventos(OAuth2AuthenticationToken authentication) {
+        // ... (mesma validação de autenticação de antes) ...
+
         List<Map<String, String>> listaSimplificada = new ArrayList<>();
 
         try {
             String accessToken = getAccessToken(authentication);
             List<Event> eventosGoogle = agendaService.listarProximosEventos(accessToken);
 
-            // Loop para pegar só os dados importantes
-            for (Event event : eventosGoogle) {
-                Map<String, String> resumo = new HashMap<>();
-                if (event.getSummary() != null) {
-                    resumo.put("id", event.getId()); // <--- AQUI ESTÁ O ID QUE VOCÊ PRECISA
-                    resumo.put("titulo", event.getSummary());
+            if (eventosGoogle != null) {
+                for (Event event : eventosGoogle) {
+                    if (event.getSummary() != null) {
+                        Map<String, String> resumo = new HashMap<>();
+                        resumo.put("id", event.getId());
+                        resumo.put("titulo", event.getSummary());
 
-                    // Tratamento para data (pode ser data-hora ou dia inteiro)
-                    if (event.getStart().getDateTime() != null) {
-                        resumo.put("inicio", event.getStart().getDateTime().toString());
-                    } else {
-                        resumo.put("inicio", event.getStart().getDate().toString()); // Evento de dia inteiro
+                        // TRATAMENTO PARA DATA INICIO
+                        if (event.getStart().getDateTime() != null) {
+                            resumo.put("inicio", event.getStart().getDateTime().toString());
+                        } else {
+                            resumo.put("inicio", event.getStart().getDate().toString());
+                        }
+
+                        // --- NOVO: TRATAMENTO PARA DATA FIM ---
+                        if (event.getEnd().getDateTime() != null) {
+                            resumo.put("fim", event.getEnd().getDateTime().toString());
+                        } else {
+                            // Se for dia inteiro, o fim geralmente é o dia seguinte
+                            resumo.put("fim", event.getEnd().getDate().toString());
+                        }
+                        // --------------------------------------
+
+                        listaSimplificada.add(resumo);
                     }
-                    listaSimplificada.add(resumo);
                 }
-
             }
-
         } catch (Exception e) {
             e.printStackTrace();
-            // Em caso de erro, retorna uma lista vazia ou trata como preferir
         }
-
         return listaSimplificada;
     }
 
