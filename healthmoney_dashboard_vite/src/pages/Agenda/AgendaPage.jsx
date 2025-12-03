@@ -55,7 +55,7 @@ export default function AgendaPage() {
 
 			if (response.status === 401) {
 				console.warn("Sessão expirada. Redirecionando...");
-				window.location.href = "http://localhost:8080/login";
+				window.location.href = "/login";
 				return;
 			}
 
@@ -108,7 +108,7 @@ export default function AgendaPage() {
 
 			if (response.status === 401) {
 				console.warn("Sessão expirada. Redirecionando...");
-				window.location.href = "http://localhost:8080/login";
+				window.location.href = "/login";
 				return;
 			}
 

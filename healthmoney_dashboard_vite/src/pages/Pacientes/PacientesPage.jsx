@@ -23,7 +23,7 @@ export default function PacientesPage() {
 		try {
 			const response = await fetch("/api/pacientes");
 			if (response.status === 401) {
-				window.location.href = "http://localhost:8080/loginGoogle";
+				window.location.href = "/login";
 				return;
 			}
 			const data = await response.json();
