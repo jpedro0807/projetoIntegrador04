@@ -49,34 +49,34 @@ export default function AgendaPage() {
 		emailPaciente: "",
 	});
 
-	// 1. BUSCAR EVENTOS NO JAVA (GET)
 	const fetchEvents = async () => {
 		try {
-			const response = await fetch("/agenda/listar", {
-				method: "GET",
-				headers: {
-					Accept: "application/json",
-				},
-			});
+			const response = await fetch("/api/agenda/listar");
+
+			if (response.status === 401) {
+				console.warn("Sessão expirada. Redirecionando...");
+				window.location.href = "http://localhost:8080/login";
+				return;
+			}
+
 			if (response.ok) {
 				const data = await response.json();
-
-				// Transformação CRÍTICA para o React Big Calendar
+				console.log(data);
 				const eventosFormatados = data.map((evt) => ({
 					title: evt.titulo,
-					// O Calendar precisa de objetos Date reais, não strings
 					start: new Date(evt.inicio),
-					end: new Date(evt.fim || evt.inicio), // Usa inicio se fim for nulo
-					resource: evt, // Guarda o ID original caso precise deletar depois
+					end: new Date(evt.fim || evt.inicio),
+					resource: evt,
 				}));
 
 				setEvents(eventosFormatados);
+			} else {
+				console.error("Erro na resposta da API:", response.status);
 			}
 		} catch (error) {
 			console.error("Erro ao buscar agenda:", error);
 		}
 	};
-
 	// Carrega ao abrir a página
 	useEffect(() => {
 		fetchEvents();
@@ -100,11 +100,17 @@ export default function AgendaPage() {
 		};
 
 		try {
-			const response = await fetch("/agenda/criar", {
+			const response = await fetch("/api/agenda/criar", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
 			});
+
+			if (response.status === 401) {
+				console.warn("Sessão expirada. Redirecionando...");
+				window.location.href = "http://localhost:8080/login";
+				return;
+			}
 
 			if (response.ok) {
 				alert("Agendamento criado com sucesso!");
@@ -119,7 +125,7 @@ export default function AgendaPage() {
 				}); // Limpa form
 				fetchEvents(); // Recarrega calendário
 			} else {
-				alert("Erro ao criar evento. Verifique se está logado.");
+				console.error("Erro:", error);
 			}
 		} catch (error) {
 			console.error("Erro:", error);
